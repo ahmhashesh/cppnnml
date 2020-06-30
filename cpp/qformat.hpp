@@ -24,9 +24,10 @@
 
 #include "typeChooser.hpp"
 
-#ifndef UINT64_MAX
-#define UINT64_MAX 0xFFFFFFFFFFFFFFFFULL
-#endif // UINT64_MAX
+
+#ifndef UINT128_MAX
+#define UINT128_MAX 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFULL
+#endif // UINT128_MAX
 
 namespace tinymind {
 
@@ -64,7 +65,7 @@ namespace tinymind {
     struct SignExtender
     {
         static const T SignBitMask = static_cast<T>(1 << (NumberOfFixedBits + NumberOfFractionalBits - 1));
-        static const T SignExtensionBits = static_cast<T>(UINT64_MAX << (NumberOfFixedBits + NumberOfFractionalBits));
+        static const T SignExtensionBits = static_cast<T>(UINT128_MAX << (NumberOfFixedBits + NumberOfFractionalBits));
 
         static void signExtend(T& value)
         {
@@ -395,6 +396,9 @@ namespace tinymind {
             return (mValue.getValue() != value);
         }
 
+
+        
+
 #ifdef ENABLE_OSTREAMS
         friend std::ostream& operator<<(std::ostream& os, const QValue& value)
         {
@@ -593,4 +597,27 @@ namespace tinymind {
 
         return (left.getValue() <= other.getValue());
     }
+}
+std::ostream& operator << (std::ostream& dest, __int128_t value) 
+{
+    std::ostream::sentry s(dest);
+    if (s) {
+        __uint128_t tmp = value<0?-value:value;
+        char buffer[128];
+        char* d = std::end(buffer);
+        do {
+            -- d;
+            *d = "0123456789"[tmp%10];
+            tmp/=10;
+        }while(tmp!=0);
+        if(value<0) {
+            --d;
+            *d = '-';
+        }
+        int len = std::end(buffer)-d;
+        if (dest.rdbuf()->sputn(d,len)!=len) {
+            dest.setstate(std::ios_base::badbit);
+        }
+    }
+    return dest;
 }

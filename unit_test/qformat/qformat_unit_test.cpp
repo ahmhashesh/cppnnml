@@ -26,6 +26,11 @@
 #include <cstdint>
 #include <limits>
 
+#ifdef __SIZEOF_INT128__
+typedef unsigned __int128 uint128_t;
+typedef __int128 int128_t;
+#endif
+
 #include "qformat.hpp"
 
 typedef tinymind::QValue<8, 8, false, tinymind::RoundUpPolicy> UnsignedQ8_8Type;
@@ -37,8 +42,8 @@ typedef tinymind::QValue<16, 16, true> SignedQ16_16Type;
 typedef tinymind::QValue<24, 8, false> UnSignedQ24_8Type;
 typedef tinymind::QValue<8, 24, true> SignedQ8_24Type;
 typedef tinymind::QValue<8, 24, false> UnSignedQ8_24Type;
-typedef tinymind::QValue<24, 8, false> UnSignedQ24_8Type;
-
+typedef tinymind::QValue<64, 64, false> UnSignedQ64_64Type;
+typedef tinymind::QValue<64, 64, true> SignedQ64_64Type;
 typedef tinymind::QValue<8, 8, false> UnsignedTruncatingQType;
 
 static_assert((std::numeric_limits<uint16_t>::max() == std::numeric_limits<typename UnsignedQ8_8Type::FixedPartFieldType>::max()), "Invalid type.");
@@ -53,6 +58,8 @@ static_assert((std::numeric_limits<uint32_t>::max() == std::numeric_limits<typen
 static_assert((std::numeric_limits<uint32_t>::max() == std::numeric_limits<typename UnSignedQ24_8Type::FractionalPartFieldType>::max()), "Invalid type.");
 static_assert((std::numeric_limits<int32_t>::max() == std::numeric_limits<typename SignedQ24_8Type::FixedPartFieldType>::max()), "Invalid type.");
 static_assert((std::numeric_limits<uint32_t>::max() == std::numeric_limits<typename SignedQ24_8Type::FractionalPartFieldType>::max()), "Invalid type.");
+static_assert((std::numeric_limits<uint128_t>::max() == std::numeric_limits<typename UnSignedQ64_64Type::FractionalPartFieldType>::max()), "Invalid type.");
+//static_assert((std::numeric_limits<int128_t>::max() == std::numeric_limits<typename SignedQ64_64Type::FractionalPartFieldType>::max()), "Invalid type.");
 
 #define BOOST_TEST_MODULE test module name
 #include <boost/test/included/unit_test.hpp>
@@ -143,6 +150,8 @@ BOOST_AUTO_TEST_CASE(test_case_addition)
     SignedQ8_24Type Q11(1, 0);
     SignedQ8_24Type Q12(0x800000);
     SignedQ8_24Type Q13;
+    SignedQ64_64Type Q14;
+    SignedQ64_64Type Q15;
 
     uQ0 += 0;
     BOOST_TEST(static_cast<UnsignedQ8_8Type::FullWidthValueType>(0) == uQ0.getValue());
@@ -221,6 +230,11 @@ BOOST_AUTO_TEST_CASE(test_case_addition)
 
     Q13 = Q11 + 1;
     BOOST_TEST(static_cast<SignedQ8_24Type::FullWidthValueType>(0x2000000) == Q13.getValue());
+    
+    Q15 = 0x8000;
+    Q14 = 0x8000;
+    Q14 += Q15 ;
+    BOOST_TEST(static_cast<SignedQ64_64Type::FullWidthValueType>(0x8000) == Q15.getValue());
 }
 
 BOOST_AUTO_TEST_CASE(test_case_subtraction)
